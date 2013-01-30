@@ -1,0 +1,14 @@
+{
+    "name": "cundd/assetic_additions",
+    "description": "Additions and extensions for Assetic",
+    "require": {
+        "kriswallsmith/assetic": "dev-node-visitor",
+        "richthegeek/phpsass": "dev-master"
+    },
+    "authors": [
+        {
+            "name": "Daniel Corn",
+            "email": "info@cundd.net"
+        }
+    ]
+}
