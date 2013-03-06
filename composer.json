@@ -1,12 +1,11 @@
 {
     "name": "cundd/assetic_additions",
     "description": "Additions and extensions for Assetic",
-    "type": "library",
     "license": "MIT",
+    "minimum-stability": "dev",
     "homepage": "https://github.com/cundd/assetic_additions",
     "require": {
-        "kriswallsmith/assetic": "dev-node-visitor",
-        "richthegeek/phpsass": "dev-master"
+        "kriswallsmith/assetic": "*"
     },
     "authors": [
         {
