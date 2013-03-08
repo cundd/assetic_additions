@@ -27,112 +27,63 @@ use Assetic\Asset\AssetInterface;
 use Assetic\Filter\FilterInterface;
 #use AsseticAdditions\Filter\AbstractFilter;
 
-
-
 /**
  * Loads SCSS files using the PHP implementation of scss, scssphp.
  */
 #class ScssphpFilter extends AbstractFilter implements FilterInterface {
 class ScssphpFilter implements FilterInterface {
-
-	/**
-	 * Indicates if compass should be used
-	 * @var boolean
-	 */
-	protected $compass = FALSE;
-
-	/**
-	 * The class name of the formatter to use
-	 * @var string
-	 */
-	protected $formatter = 'scss_formatter_nested';
-
-	/**
-	 * The import paths for the compiler to use
-	 * @var array
-	 */
 	protected $importPaths = array();
 
-	/**
-	 * Compile/filter the asset
-	 * @param  AssetInterface $asset
-	 * @return void
-	 */
+	protected $options = array(
+		'style' => 'nested',
+		'cache' => FALSE,
+		'syntax' => 'scss',
+		'debug' => TRUE,
+		'debug_info' => FALSE,
+		// 'load_paths' => $loadPaths,
+		// 'filename' => $path,
+
+		#'load_path_functions' => array('sassy_load_callback'),
+		#'functions' => sassy_get_functions(),
+		#'callbacks' => array(
+		#	'warn' => $watchdog ? 'sassy_watchdog_warn' : NULL,
+		#	'debug' => $watchdog ? 'sassy_watchdog_debug' : NULL,
+		#),
+	);
+
 	public function filterLoad(AssetInterface $asset) {
-		$root = $asset->getSourceRoot();
 		$path = $asset->getSourcePath();
+		$options = $this->options;
+		$options['filename'] = $path;
 
-		$lc = new \scssc();
-		if ($this->compass) {
-			new \scss_compass($lc);
+		$loadPaths = $this->importPaths;
+		foreach ($loadPaths as &$path) {
+		    if (substr($path, -1) === '/') {
+		        $path = substr($path, 0, -1);
+		    }
 		}
+		$options['load_paths'] = $loadPaths;
 
+		ini_set('max_execution_time', 20);
 
-		// Set the formatter
-		$lc->setFormatter($this->formatter);
-
-		if ($root && $path) {
-			$lc->addImportPath(dirname($root . '/' . $path));
+		// Execute the compiler.
+		$parser = new \SassParser($options);
+		try {
+			$result = $parser->toCss($asset->getContent(), FALSE);
+		} catch (\Exception $e) {
+			#$this->pd('Options:', $options);
+			#$this->pd('Parser:', $parser);
+			throw $e;
 		}
-		foreach ($this->importPaths as $path) {
-			$lc->addImportPath($path);
-		}
-
-		\Ir::pd($lc, $this->importPaths);
-
-		$asset->setContent($lc->compile($asset->getContent()));
+		$asset->setContent($result);
 	}
 
-	/**
-	 * Returns the class name of the formatter to use
-	 *
-	 * @return string
-	 */
-	public function getFormatter() {
-		 return $this->formatter;
-	}
-
-	/**
-	 * Sets the class name of the formatter to use
-	 *
-	 * @param string $newformatter
-	 */
-	public function setFormatter($formatter) {
-		 $this->formatter = $formatter;
-		 return $this;
-	}
-
-	/**
-	 * Enable/disable compass for the filter
-	 * @param  boolean $enable
-	 * @return void
-	 */
-	public function enableCompass($enable = TRUE) {
-		 $this->compass = (bool) $enable;
-	}
-
-	/**
-	 * Returns if compass is enabled
-	 * @return boolean
-	 */
-	public function isCompassEnabled() {
-		 return $this->compass;
-	}
-
-	/**
-	 * Sets the import paths for the compiler to use
-	 * @param array $paths Array of directory paths
-	 */
 	public function setImportPaths(array $paths) {
-		 $this->importPaths = $paths;
+		$this->importPaths = $paths;
 	}
 
-	/**
-	 * Add an import path for the compiler to use
-	 * @param string $path
-	 */
 	public function addImportPath($path) {
-		 $this->importPaths[] = $path;
+		$this->importPaths[] = $path;
 	}
 
 	public function filterDump(AssetInterface $asset) {}
