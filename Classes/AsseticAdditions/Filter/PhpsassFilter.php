@@ -25,13 +25,11 @@ namespace AsseticAdditions\Filter;
 
 use Assetic\Asset\AssetInterface;
 use Assetic\Filter\FilterInterface;
-#use AsseticAdditions\Filter\AbstractFilter;
 
 /**
  * Loads SCSS files using the PHP implementation of scss, scssphp.
  */
-#class ScssphpFilter extends AbstractFilter implements FilterInterface {
-class ScssphpFilter implements FilterInterface {
+class ScssphpFilter extends AbstractFilter implements FilterInterface {
 	protected $importPaths = array();
 
 	protected $options = array(
@@ -87,17 +85,4 @@ class ScssphpFilter implements FilterInterface {
 	}
 
 	public function filterDump(AssetInterface $asset) {}
-
-	/**
-	 * Dumps a given variable (or the given variables) wrapped into a 'pre' tag.
-	 *
-	 * @param	mixed	$var1
-	 * @return	string The printed content
-	 */
-	public function pd($var1 = '__iresults_pd_noValue') {
-		if (class_exists('Tx_Iresults')) {
-			$arguments = func_get_args();
-			call_user_func_array(array('Tx_Iresults', 'pd'), $arguments);
-		}
-	}
 }

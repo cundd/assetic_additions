@@ -32,9 +32,7 @@ use Assetic\Filter\FilterInterface;
 /**
  * Loads SCSS files using the PHP implementation of scss, scssphp.
  */
-#class ScssphpFilter extends AbstractFilter implements FilterInterface {
-class ScssphpFilter implements FilterInterface {
-
+class ScssphpFilter extends AbstractFilter implements FilterInterface {
 	/**
 	 * Indicates if compass should be used
 	 * @var boolean
@@ -59,6 +57,7 @@ class ScssphpFilter implements FilterInterface {
 	 * @return void
 	 */
 	public function filterLoad(AssetInterface $asset) {
+		$content = '';
 		$root = $asset->getSourceRoot();
 		$path = $asset->getSourcePath();
 
@@ -67,6 +66,10 @@ class ScssphpFilter implements FilterInterface {
 			new \scss_compass($lc);
 		}
 
+		// Enable strict file imports, if supported
+		if (method_exists($lc, 'setThrowExceptionIfImportFileNotFound')) {
+			$lc->setThrowExceptionIfImportFileNotFound(TRUE);
+		}
 
 		// Set the formatter
 		$lc->setFormatter($this->formatter);
@@ -78,9 +81,12 @@ class ScssphpFilter implements FilterInterface {
 			$lc->addImportPath($path);
 		}
 
-		\Ir::pd($lc, $this->importPaths);
-
-		$asset->setContent($lc->compile($asset->getContent()));
+		try {
+			$content = $lc->compile($asset->getContent());
+		} catch (\Exception_ScssException $exception) {
+			throw $exception;
+		}
+		$asset->setContent($content);
 	}
 
 	/**
@@ -136,17 +142,4 @@ class ScssphpFilter implements FilterInterface {
 	}
 
 	public function filterDump(AssetInterface $asset) {}
-
-	/**
-	 * Dumps a given variable (or the given variables) wrapped into a 'pre' tag.
-	 *
-	 * @param	mixed	$var1
-	 * @return	string The printed content
-	 */
-	public function pd($var1 = '__iresults_pd_noValue') {
-		if (class_exists('Tx_Iresults')) {
-			$arguments = func_get_args();
-			call_user_func_array(array('Tx_Iresults', 'pd'), $arguments);
-		}
-	}
 }
