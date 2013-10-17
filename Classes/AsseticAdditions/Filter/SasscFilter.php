@@ -24,107 +24,82 @@ namespace AsseticAdditions\Filter;
  */
 
 use Assetic\Asset\AssetInterface;
-use Assetic\Filter\FilterInterface;
+use Assetic\Filter\DependencyExtractorInterface;
+use Assetic\Filter\BaseProcessFilter;
 use Assetic\Filter\Sass\SassFilter;
 use Assetic\Exception\FilterException;
-#use AsseticAdditions\Filter\AbstractFilter;
-
+use Assetic\Factory\AssetFactory;
+use Assetic\Util\CssUtils;
 
 
 /**
  * Loads SCSS files using the C implementation sassc and libsass.
  */
-class SasscFilter extends SassFilter implements FilterInterface {
-	public function __construct($sassPath = '/usr/bin/sassc', $rubyPath = null)
-    {
-        $this->sassPath = $sassPath;
-    }
+class SasscFilter extends BaseProcessFilter implements DependencyExtractorInterface {
 
-    public function setCompass($compass)
-    {
-    	// Not supported
-    }
+	const STYLE_NESTED = 'nested';
+	const STYLE_EXPANDED = 'expanded';
+	const STYLE_COMPACT = 'compact';
+	const STYLE_COMPRESSED = 'compressed';
 
-    public function filterLoad(AssetInterface $asset)
-    {
-        $sassProcessArgs = array($this->sassPath);
-        // if (null !== $this->rubyPath) {
-        //     $sassProcessArgs = array_merge(explode(' ', $this->rubyPath), $sassProcessArgs);
-        // }
-
-        $pb = $this->createProcessBuilder($sassProcessArgs);
+	protected $binaryPath;
+	protected $style;
+	protected $lineNumbers;
+	protected $emitSourceMap;
+	protected $loadPaths = array();
 
 
-        $assetDirectory = '';
-        if (method_exists($asset, 'getSourceDirectory')) {
-        	$assetDirectory = $asset->getSourceDirectory();
-        } else {
-        	$root = $asset->getSourceRoot();
-	        $path = $asset->getSourcePath();
-        	$assetDirectory = dirname($root.'/'.$path);
-        }
-        
-        $allLoadPaths = $this->loadPaths;
-        array_unshift($allLoadPaths, $assetDirectory);
-        $pb->add('-I')->add(implode(':', $allLoadPaths));
+	public function __construct($binaryPath = '/usr/bin/sassc') {
+		$this->binaryPath = $binaryPath;
+	}
 
-        // if ($this->unixNewlines) {
-        //     $pb->add('--unix-newlines');
-        // }
+	public function filterLoad(AssetInterface $asset) {
+		$sassProcessArgs = array($this->binaryPath);
+		$pb = $this->createProcessBuilder($sassProcessArgs);
 
-        // if (true === $this->scss || (null === $this->scss && 'scss' == pathinfo($asset->getSourcePath(), PATHINFO_EXTENSION))) {
-        //     $pb->add('--scss');
-        // }
+		$assetDirectory = '';
+		if (method_exists($asset, 'getSourceDirectory')) {
+			$assetDirectory = $asset->getSourceDirectory();
+		} else {
+			$root = $asset->getSourceRoot();
+			$path = $asset->getSourcePath();
+			$assetDirectory = dirname($root . '/' . $path);
+		}
 
-        if ($this->style) {
-            $pb->add('-t')->add($this->style);
-        }
+		$allLoadPaths = $this->loadPaths;
+		array_unshift($allLoadPaths, $assetDirectory);
+		$pb->add('-I')->add(implode(':', $allLoadPaths));
 
-        // if ($this->quiet) {
-        //     $pb->add('--quiet');
-        // }
+		if ($this->style) {
+			$pb->add('-t')->add($this->style);
+		}
+		if ($this->lineNumbers) {
+			$pb->add('-l');
+		}
+		if ($this->emitSourceMap) {
+			$pb->add('-g');
+		}
 
-        // if ($this->debugInfo) {
-        //     $pb->add('--debug-info');
-        // }
+		// input
+		// $pb->add($input = tempnam(sys_get_temp_dir(), 'assetic_sass'));
+		// file_put_contents($input, $asset->getContent());
 
-        if ($this->lineNumbers) {
-            $pb->add('-l');
-        }
+		$pb->add($asset->getSourceRoot() . '/' . $asset->getSourcePath());
 
-        
+		$process = $pb->getProcess();
+		$code = $process->run();
+		// unlink($input);
 
-        // if ($this->cacheLocation) {
-        //     $pb->add('--cache-location')->add($this->cacheLocation);
-        // }
+		if (0 !== $code) {
+			throw FilterException::fromProcess($process); //->setInput($asset->getContent());
+		}
 
-        // if ($this->noCache) {
-        //     $pb->add('--no-cache');
-        // }
+		$asset->setContent($process->getOutput());
+	}
 
-        // if ($this->compass) {
-        //     $pb->add('--compass');
-        // }
-
-        // input
-        // $pb->add($input = tempnam(sys_get_temp_dir(), 'assetic_sass'));
-        // file_put_contents($input, $asset->getContent());
-
-	    $pb->add($asset->getSourceRoot() . '/' . $asset->getSourcePath());
-
-        $proc = $pb->getProcess();
-        $code = $proc->run();
-        // unlink($input);
-
-        if (0 !== $code) {
-            throw FilterException::fromProcess($proc);//->setInput($asset->getContent());
-        }
-
-        $asset->setContent($proc->getOutput());
-    }
-	
 	/**
 	 * Sets the import paths for the compiler to use
+	 *
 	 * @param array $paths Array of directory paths
 	 */
 	public function setImportPaths(array $paths) {
@@ -132,10 +107,115 @@ class SasscFilter extends SassFilter implements FilterInterface {
 	}
 
 	/**
+	 * @see setImportPaths()
+	 */
+	public function setLoadPaths(array $loadPaths) {
+		$this->setImportPaths($loadPaths);
+	}
+
+	/**
 	 * Add an import path for the compiler to use
+	 *
 	 * @param string $path
 	 */
 	public function addImportPath($path) {
 		$this->loadPaths[] = $path;
+	}
+
+	/**
+	 * @see addImportPath()
+	 */
+	public function addLoadPath($loadPath) {
+		$this->addImportPath($loadPath);
+	}
+
+
+	public function setStyle($style) {
+		$this->style = $style;
+	}
+
+	/**
+	 * @param boolean $emitSourceMap
+	 */
+	public function setEmitSourceMap($emitSourceMap) {
+		$this->emitSourceMap = $emitSourceMap;
+	}
+
+
+	public function setLineNumbers($lineNumbers) {
+		$this->lineNumbers = $lineNumbers;
+	}
+
+
+	public function filterDump(AssetInterface $asset) {
+	}
+
+	public function getChildren(AssetFactory $factory, $content, $loadPath = null) {
+		$loadPaths = $this->loadPaths;
+		if ($loadPath) {
+			array_unshift($loadPaths, $loadPath);
+		}
+
+		if (!$loadPaths) {
+			return array();
+		}
+
+		$children = array();
+		foreach (CssUtils::extractImports($content) as $reference) {
+			if ('.css' === substr($reference, -4)) {
+				// skip normal css imports
+				// todo: skip imports with media queries
+				continue;
+			}
+
+			// the reference may or may not have an extension or be a partial
+			if (pathinfo($reference, PATHINFO_EXTENSION)) {
+				$needles = array(
+					$reference,
+					self::partialize($reference),
+				);
+			} else {
+				$needles = array(
+					$reference . '.scss',
+					$reference . '.sass',
+					self::partialize($reference) . '.scss',
+					self::partialize($reference) . '.sass',
+				);
+			}
+
+			foreach ($loadPaths as $loadPath) {
+				foreach ($needles as $needle) {
+					if (file_exists($file = $loadPath . '/' . $needle)) {
+						$coll = $factory->createAsset($file, array(), array('root' => $loadPath));
+						foreach ($coll as $leaf) {
+							/** @var AssetInterface $leaf */
+							$leaf->ensureFilter($this);
+							$children[] = $leaf;
+							goto next_reference;
+						}
+					}
+				}
+			}
+
+			next_reference:
+		}
+
+		return $children;
+	}
+
+	private static function partialize($reference) {
+		$parts = pathinfo($reference);
+
+		if ('.' === $parts['dirname']) {
+			$partial = '_' . $parts['filename'];
+		} else {
+			$partial = $parts['dirname'] . DIRECTORY_SEPARATOR . '_' . $parts['filename'];
+		}
+
+		if (isset($parts['extension'])) {
+			$partial .= '.' . $parts['extension'];
+		}
+
+		return $partial;
 	}
 }
