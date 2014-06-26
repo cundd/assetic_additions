@@ -30,6 +30,7 @@ use Assetic\Filter\Sass\SassFilter;
 use Assetic\Exception\FilterException;
 use Assetic\Factory\AssetFactory;
 use Assetic\Util\CssUtils;
+use Symfony\Component\Process\Process;
 
 
 /**
@@ -77,7 +78,7 @@ class SasscFilter extends BaseProcessFilter implements DependencyExtractorInterf
 			$pb->add('-l');
 		}
 		if ($this->emitSourceMap) {
-			$pb->add('-g');
+			$pb->add($this->getEmitSourceMapOption());
 		}
 
 		// input
@@ -95,6 +96,21 @@ class SasscFilter extends BaseProcessFilter implements DependencyExtractorInterf
 		}
 
 		$asset->setContent($process->getOutput());
+	}
+
+	/**
+	 * Returns either "-m" or "-g"
+	 *
+	 * @return string
+	 */
+	public function getEmitSourceMapOption() {
+		$sassProcessArgs = array($this->binaryPath);
+		$processBuilder = $this->createProcessBuilder($sassProcessArgs);
+		$processBuilder->add('-h');
+
+		$process = $processBuilder->getProcess();
+		$process->run();
+		return strpos($process->getOutput(), '-m, --sourcemap') !== FALSE ? '-m' : '-g';
 	}
 
 	/**
