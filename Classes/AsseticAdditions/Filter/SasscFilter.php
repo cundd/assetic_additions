@@ -81,20 +81,19 @@ class SasscFilter extends BaseProcessFilter implements DependencyExtractorInterf
 			$pb->add($this->getEmitSourceMapOption());
 		}
 
-		// input
-		// $pb->add($input = tempnam(sys_get_temp_dir(), 'assetic_sass'));
-		// file_put_contents($input, $asset->getContent());
-
 		$pb->add($asset->getSourceRoot() . '/' . $asset->getSourcePath());
 
 		$process = $pb->getProcess();
-		$code = $process->run();
-		// unlink($input);
+		try {
+			$code = $process->run();
+			// unlink($input);
 
-		if (0 !== $code) {
-			throw FilterException::fromProcess($process); //->setInput($asset->getContent());
+			if (0 !== $code) {
+				throw FilterException::fromProcess($process); //->setInput($asset->getContent());
+			}
+		} catch (\Symfony\Component\Process\Exception\RuntimeException $exception) {
+			throw FilterException::fromProcess($process);
 		}
-
 		$asset->setContent($process->getOutput());
 	}
 
