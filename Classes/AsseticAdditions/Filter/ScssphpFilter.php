@@ -45,7 +45,7 @@ class ScssphpFilter extends AbstractFilter implements FilterInterface
      *
      * @var string
      */
-    protected $formatter = 'scss_formatter_nested';
+    protected $formatter = '';
 
     /**
      * The import paths for the compiler to use
@@ -76,7 +76,9 @@ class ScssphpFilter extends AbstractFilter implements FilterInterface
         }
 
         // Set the formatter
-        $lc->setFormatter($this->formatter);
+        if ($this->formatter) {
+            $lc->setFormatter($this->formatter);
+        }
 
         if ($root && $path) {
             $lc->addImportPath(dirname($root.'/'.$path));
