@@ -31,116 +31,136 @@ use AsseticAdditions\CompilerInterface;
 /**
  * Loads SCSS files using the PHP implementation of scss, scssphp.
  */
-class ScssphpFilter extends AbstractFilter implements FilterInterface {
-	/**
-	 * Indicates if compass should be used
-	 * @var boolean
-	 */
-	protected $compass = FALSE;
+class ScssphpFilter extends AbstractFilter implements FilterInterface
+{
+    /**
+     * Indicates if compass should be used
+     *
+     * @var boolean
+     */
+    protected $compass = false;
 
-	/**
-	 * The class name of the formatter to use
-	 * @var string
-	 */
-	protected $formatter = 'scss_formatter_nested';
+    /**
+     * The class name of the formatter to use
+     *
+     * @var string
+     */
+    protected $formatter = 'scss_formatter_nested';
 
-	/**
-	 * The import paths for the compiler to use
-	 * @var array
-	 */
-	protected $importPaths = array();
+    /**
+     * The import paths for the compiler to use
+     *
+     * @var array
+     */
+    protected $importPaths = array();
 
-	/**
-	 * Compile/filter the asset
-	 * @param  AssetInterface $asset
-	 * @return void
-	 */
-	public function filterLoad(AssetInterface $asset) {
-		$root = $asset->getSourceRoot();
-		$path = $asset->getSourcePath();
+    /**
+     * Compile/filter the asset
+     *
+     * @param  AssetInterface $asset
+     */
+    public function filterLoad(AssetInterface $asset)
+    {
+        $root = $asset->getSourceRoot();
+        $path = $asset->getSourcePath();
 
 
-		$lc = $this->getCompiler();
-		if ($this->compass) {
+        $lc = $this->getCompiler();
+        if ($this->compass) {
             $this->configureCompass($lc);
         }
 
-		// Enable strict file imports, if supported
-		if (method_exists($lc, 'setThrowExceptionIfImportFileNotFound')) {
-			$lc->setThrowExceptionIfImportFileNotFound(TRUE);
-		}
+        // Enable strict file imports, if supported
+        if (method_exists($lc, 'setThrowExceptionIfImportFileNotFound')) {
+            $lc->setThrowExceptionIfImportFileNotFound(true);
+        }
 
-		// Set the formatter
-		$lc->setFormatter($this->formatter);
+        // Set the formatter
+        $lc->setFormatter($this->formatter);
 
-		if ($root && $path) {
-			$lc->addImportPath(dirname($root . '/' . $path));
-		}
-		foreach ($this->importPaths as $path) {
-			$lc->addImportPath($path);
-		}
+        if ($root && $path) {
+            $lc->addImportPath(dirname($root.'/'.$path));
+        }
+        foreach ($this->importPaths as $path) {
+            $lc->addImportPath($path);
+        }
 
-		try {
-			$content = $lc->compile($asset->getContent());
-		} catch (\Exception_ScssException $exception) {
-			throw $exception;
-		}
-		$asset->setContent($content);
-	}
+        try {
+            $content = $lc->compile($asset->getContent());
+        } catch (\Exception_ScssException $exception) {
+            throw $exception;
+        }
+        $asset->setContent($content);
+    }
 
-	/**
-	 * Returns the class name of the formatter to use
-	 *
-	 * @return string
-	 */
-	public function getFormatter() {
-		 return $this->formatter;
-	}
+    /**
+     * Returns the class name of the formatter to use
+     *
+     * @return string
+     */
+    public function getFormatter()
+    {
+        return $this->formatter;
+    }
 
-	/**
-	 * Sets the class name of the formatter to use
-	 *
-	 * @param string $newformatter
-	 */
-	public function setFormatter($formatter) {
-		 $this->formatter = $formatter;
-		 return $this;
-	}
+    /**
+     * Sets the class name of the formatter to use
+     *
+     * @param string $formatter
+     * @return $this
+     */
+    public function setFormatter($formatter)
+    {
+        var_dump($formatter);
+        $this->formatter = $formatter;
 
-	/**
-	 * Enable/disable compass for the filter
-	 * @param  boolean $enable
-	 * @return void
-	 */
-	public function enableCompass($enable = TRUE) {
-		 $this->compass = (bool) $enable;
-	}
+        return $this;
+    }
 
-	/**
-	 * Returns if compass is enabled
-	 * @return boolean
-	 */
-	public function isCompassEnabled() {
-		 return $this->compass;
-	}
+    /**
+     * Enable/disable compass for the filter
+     *
+     * @param  boolean $enable
+     * @return void
+     */
+    public function enableCompass($enable = true)
+    {
+        $this->compass = (bool)$enable;
+    }
 
-	/**
-	 * Sets the import paths for the compiler to use
-	 * @param array $paths Array of directory paths
-	 */
-	public function setImportPaths(array $paths) {
-		 $this->importPaths = $paths;
-	}
+    /**
+     * Returns if compass is enabled
+     *
+     * @return boolean
+     */
+    public function isCompassEnabled()
+    {
+        return $this->compass;
+    }
 
-	/**
-	 * Add an import path for the compiler to use
-	 * @param string $path
-	 */
-	public function addImportPath($path) {
-		 $this->importPaths[] = $path;
-	}
+    /**
+     * Sets the import paths for the compiler to use
+     *
+     * @param array $paths Array of directory paths
+     */
+    public function setImportPaths(array $paths)
+    {
+        $this->importPaths = $paths;
+    }
 
-	public function filterDump(AssetInterface $asset) {}
+    /**
+     * Add an import path for the compiler to use
+     *
+     * @param string $path
+     */
+    public function addImportPath($path)
+    {
+        $this->importPaths[] = $path;
+    }
+
+    public function filterDump(AssetInterface $asset)
+    {
+    }
 
     /**
      * @return \AsseticAdditions\CompilerInterface|\Leafo\ScssPhp\Compiler
