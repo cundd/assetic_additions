@@ -25,8 +25,7 @@ namespace AsseticAdditions\Filter;
 
 use Assetic\Asset\AssetInterface;
 use Assetic\Filter\FilterInterface;
-#use AsseticAdditions\Filter\AbstractFilter;
-
+use AsseticAdditions\CompilerInterface;
 
 
 /**
@@ -57,14 +56,14 @@ class ScssphpFilter extends AbstractFilter implements FilterInterface {
 	 * @return void
 	 */
 	public function filterLoad(AssetInterface $asset) {
-		$content = '';
 		$root = $asset->getSourceRoot();
 		$path = $asset->getSourcePath();
 
-		$lc = new \scssc();
+
+		$lc = $this->getCompiler();
 		if ($this->compass) {
-			new \scss_compass($lc);
-		}
+            $this->configureCompass($lc);
+        }
 
 		// Enable strict file imports, if supported
 		if (method_exists($lc, 'setThrowExceptionIfImportFileNotFound')) {
@@ -142,4 +141,25 @@ class ScssphpFilter extends AbstractFilter implements FilterInterface {
 	}
 
 	public function filterDump(AssetInterface $asset) {}
+
+    /**
+     * @return \AsseticAdditions\CompilerInterface|\Leafo\ScssPhp\Compiler
+     */
+    private function getCompiler()
+    {
+        $factory = new \AsseticAdditions\CompilerFactory\Scss\Leafo();
+
+        return $factory->createCompiler();
+    }
+
+    /**
+     * @param CompilerInterface $compiler
+     */
+    private function configureCompass($compiler)
+    {
+        if (!class_exists('scss_compass')) {
+            throw new \LogicException('Class scss_compass not found');
+        }
+        new \scss_compass($compiler);
+    }
 }
