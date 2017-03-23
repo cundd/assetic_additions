@@ -120,7 +120,9 @@ abstract class AbstractLibSassFilter extends BaseProcessFilter implements Depend
         $this->lineNumbers = $lineNumbers;
     }
 
-
+    /**
+     * @inheritdoc
+     */
     public function filterDump(AssetInterface $asset)
     {
     }
