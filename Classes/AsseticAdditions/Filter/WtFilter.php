@@ -28,16 +28,16 @@ use Assetic\Filter\DependencyExtractorInterface;
 use Symfony\Component\Process\ProcessBuilder;
 
 /**
- * Loads SCSS files using the C implementation sassc and libsass.
+ * Loads SCSS files using Wellington (https://getwt.io/)
  */
-class SasscFilter extends AbstractLibSassFilter implements DependencyExtractorInterface, LibSassFilterInterface
+class WtFilter extends AbstractLibSassFilter implements DependencyExtractorInterface, LibSassFilterInterface
 {
     /**
-     * SasscFilter constructor.
+     * WtFilter constructor.
      *
      * @param string $binaryPath
      */
-    public function __construct($binaryPath = '/usr/bin/sassc')
+    public function __construct($binaryPath = '/usr/bin/wt')
     {
         parent::__construct($binaryPath);
     }
@@ -50,33 +50,13 @@ class SasscFilter extends AbstractLibSassFilter implements DependencyExtractorIn
         $processBuilder->add('-I')->add(implode(':', $this->getIncludePaths($asset)));
 
         if ($this->style) {
-            $processBuilder->add('-t')->add($this->style);
-        }
-        if ($this->lineNumbers) {
-            $processBuilder->add('-l');
+            $processBuilder->add('-s')->add($this->style);
         }
         if ($this->emitSourceMap) {
-            $processBuilder->add($this->getEmitSourceMapOption());
+            $processBuilder->add('--source-map');
         }
 
+        $processBuilder->add('compile');
         $processBuilder->add($asset->getSourceRoot() . '/' . $asset->getSourcePath());
-    }
-
-
-    /**
-     * Returns either "-m" or "-g"
-     *
-     * @return string
-     */
-    protected function getEmitSourceMapOption()
-    {
-        $sassProcessArgs = array($this->binaryPath);
-        $processBuilder = $this->createProcessBuilder($sassProcessArgs);
-        $processBuilder->add('-h');
-
-        $process = $processBuilder->getProcess();
-        $process->run();
-
-        return strpos($process->getOutput(), '-m, --sourcemap') !== false ? '-m' : '-g';
     }
 }

@@ -23,7 +23,6 @@ namespace AsseticAdditions\Filter;
  * DEALINGS IN THE SOFTWARE.
  */
 
-use Assetic\Asset\AssetInterface;
 use Assetic\Filter\FilterInterface;
 
 /**
@@ -54,7 +53,6 @@ abstract class AbstractFilter implements FilterInterface {
 	 * Dumps a given variable (or the given variables) wrapped into a 'pre' tag.
 	 *
 	 * @param	mixed	$var1
-	 * @return	string The printed content
 	 */
 	public function pd($var1 = '__iresults_pd_noValue') {
 		if (class_exists('Tx_Iresults')) {

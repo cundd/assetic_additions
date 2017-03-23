@@ -27,7 +27,6 @@ use Assetic\Asset\AssetInterface;
 use Assetic\Filter\FilterInterface;
 use AsseticAdditions\CompilerInterface;
 
-
 /**
  * Loads SCSS files using the PHP implementation of scss, scssphp.
  */
@@ -81,7 +80,7 @@ class ScssphpFilter extends AbstractFilter implements FilterInterface
         }
 
         if ($root && $path) {
-            $lc->addImportPath(dirname($root.'/'.$path));
+            $lc->addImportPath(dirname($root . '/' . $path));
         }
         foreach ($this->importPaths as $path) {
             $lc->addImportPath($path);

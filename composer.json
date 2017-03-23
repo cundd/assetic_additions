@@ -2,10 +2,10 @@
     "name": "cundd/assetic_additions",
     "description": "Additions and extensions for Assetic",
     "license": "MIT",
-    "minimum-stability": "dev",
     "homepage": "https://github.com/cundd/assetic_additions",
     "require": {
-        "kriswallsmith/assetic": "*"
+        "php": ">=5.6",
+        "kriswallsmith/assetic": "^1.4"
     },
     "authors": [
         {
