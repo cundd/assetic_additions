@@ -53,6 +53,11 @@ class SasscFilter extends AbstractLibSassFilter implements DependencyExtractorIn
         $process = $processBuilder->getProcess();
         $process->run();
 
-        return strpos($process->getOutput(), '-m, --sourcemap') !== false ? '-m' : '-g';
+        $output = $process->getOutput();
+        if (strpos($output, '--sourcemap[=TYPE]') !== false) {
+            return '--sourcemap=inline';
+        }
+
+        return strpos($output, '-m, --sourcemap') !== false ? '-m' : '-g';
     }
 }
