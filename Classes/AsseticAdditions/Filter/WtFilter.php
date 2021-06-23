@@ -7,7 +7,7 @@ use Assetic\Filter\DependencyExtractorInterface;
 use Symfony\Component\Process\ProcessBuilder;
 
 /**
- * Loads SCSS files using Wellington (https://getwt.io/)
+ * Loads SCSS files using [Wellington](https://github.com/wellington/wellington)
  */
 class WtFilter extends AbstractLibSassFilter implements DependencyExtractorInterface, LibSassFilterInterface
 {
