@@ -1,18 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: cod
- * Date: 23.3.17
- * Time: 10:09
- */
+declare(strict_types=1);
 
 namespace AsseticAdditions\Filter;
 
-
-/**
- * Loads SCSS files using a wrapper of [LibSass](http://sass-lang.com/libsass)
- */
-interface LibSassFilterInterface
+interface SassFilterInterface
 {
     const STYLE_NESTED = 'nested';
     const STYLE_EXPANDED = 'expanded';
@@ -31,22 +22,21 @@ interface LibSassFilterInterface
      *
      * @param string $path
      */
-    public function addImportPath($path);
+    public function addImportPath(string $path);
 
     /**
      * Sets the style to use for the generated CSS
      *
      * @param string $style One of the STYLE constants
      */
-    public function setStyle($style);
+    public function setStyle(string $style);
 
     /**
      * Sets if a source map should be created
      *
      * @param boolean $emitSourceMap
-     * @internal This is not implemented yet
      */
-    public function setEmitSourceMap($emitSourceMap);
+    public function setEmitSourceMap(bool $emitSourceMap);
 
     /**
      * Sets if line numbers should be added
@@ -55,5 +45,5 @@ interface LibSassFilterInterface
      *
      * @param boolean $lineNumbers
      */
-    public function setLineNumbers($lineNumbers);
+    public function setLineNumbers(bool $lineNumbers);
 }

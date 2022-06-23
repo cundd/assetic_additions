@@ -1,15 +1,15 @@
 <?php
+declare(strict_types=1);
 
 namespace AsseticAdditions\Filter;
 
 use Assetic\Asset\AssetInterface;
-use Assetic\Filter\DependencyExtractorInterface;
-use Symfony\Component\Process\ProcessBuilder;
+use function implode;
 
 /**
- * Loads SCSS files using the C implementation sassc and libsass.
+ * Load SCSS files using the C implementation sassc and libsass.
  */
-class SasscFilter extends AbstractLibSassFilter implements DependencyExtractorInterface, LibSassFilterInterface
+class SasscFilter extends AbstractSassFilter
 {
     /**
      * SasscFilter constructor.
@@ -21,36 +21,35 @@ class SasscFilter extends AbstractLibSassFilter implements DependencyExtractorIn
         parent::__construct($binaryPath);
     }
 
-    protected function configureProcess(AssetInterface $asset, ProcessBuilder $processBuilder)
+    protected function collectProcessArguments(AssetInterface $asset): array
     {
-        $processBuilder->add('-I')->add(implode(':', $this->getIncludePaths($asset)));
+        $arguments[] = '-I';
+        $arguments[] = implode(':', $this->getIncludePaths($asset));
 
         if ($this->style) {
-            $processBuilder->add('-t')->add($this->style);
+            $arguments[] = '-t';
+            $arguments[] = $this->style;
         }
         if ($this->lineNumbers) {
-            $processBuilder->add('-l');
+            $arguments[] = '-l';
         }
         if ($this->emitSourceMap) {
-            $processBuilder->add($this->getEmitSourceMapOption());
+            $arguments[] = $this->getEmitSourceMapOption();
         }
 
-        $processBuilder->add($asset->getSourceRoot() . '/' . $asset->getSourcePath());
+        $arguments[] = $asset->getSourceRoot() . '/' . $asset->getSourcePath();
+
+        return $arguments;
     }
 
-
     /**
-     * Returns either "-m" or "-g"
+     * Return either "-m" or "-g"
      *
      * @return string
      */
-    protected function getEmitSourceMapOption()
+    protected function getEmitSourceMapOption(): string
     {
-        $sassProcessArgs = [$this->binaryPath];
-        $processBuilder = $this->createProcessBuilder($sassProcessArgs);
-        $processBuilder->add('-h');
-
-        $process = $processBuilder->getProcess();
+        $process = $this->createProcess([$this->binaryPath, '-h']);
         $process->run();
 
         $output = $process->getOutput();

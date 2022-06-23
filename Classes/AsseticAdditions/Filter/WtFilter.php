@@ -1,15 +1,15 @@
 <?php
+declare(strict_types=1);
 
 namespace AsseticAdditions\Filter;
 
 use Assetic\Asset\AssetInterface;
-use Assetic\Filter\DependencyExtractorInterface;
-use Symfony\Component\Process\ProcessBuilder;
+use function implode;
 
 /**
  * Loads SCSS files using [Wellington](https://github.com/wellington/wellington)
  */
-class WtFilter extends AbstractLibSassFilter implements DependencyExtractorInterface, LibSassFilterInterface
+class WtFilter extends AbstractSassFilter
 {
     /**
      * WtFilter constructor
@@ -21,18 +21,22 @@ class WtFilter extends AbstractLibSassFilter implements DependencyExtractorInter
         parent::__construct($binaryPath);
     }
 
-    protected function configureProcess(AssetInterface $asset, ProcessBuilder $processBuilder)
+    protected function collectProcessArguments(AssetInterface $asset): array
     {
-        $processBuilder->add('-I')->add(implode(':', $this->getIncludePaths($asset)));
+        $arguments[] = '-I';
+        $arguments[] = implode(':', $this->getIncludePaths($asset));
 
         if ($this->style) {
-            $processBuilder->add('-s')->add($this->style);
+            $arguments[] = '-s';
+            $arguments[] = $this->style;
         }
         if ($this->emitSourceMap) {
-            $processBuilder->add('--source-map');
+            $arguments[] = '--source-map';
         }
 
-        $processBuilder->add('compile');
-        $processBuilder->add($asset->getSourceRoot() . '/' . $asset->getSourcePath());
+        $arguments[] = 'compile';
+        $arguments[] = $asset->getSourceRoot() . '/' . $asset->getSourcePath();
+
+        return $arguments;
     }
 }

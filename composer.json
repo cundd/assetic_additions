@@ -4,8 +4,8 @@
     "license": "MIT",
     "homepage": "https://github.com/cundd/assetic_additions",
     "require": {
-        "php": ">=5.6",
-        "kriswallsmith/assetic": "^1.4"
+        "php": "^7.4 || ^8.0",
+        "assetic/framework": "^3.0.1"
     },
     "authors": [
         {
@@ -14,6 +14,8 @@
         }
     ],
     "autoload": {
-        "psr-0": { "AsseticAdditions": "Classes/" }
+        "psr-0": {
+            "AsseticAdditions": "Classes/"
+        }
     }
 }

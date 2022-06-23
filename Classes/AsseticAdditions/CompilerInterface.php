@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace AsseticAdditions;
 
@@ -11,5 +12,5 @@ interface CompilerInterface
      * @param string $content
      * @return string
      */
-    public function compile($content);
+    public function compile(string $content): string;
 }
